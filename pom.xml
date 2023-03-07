@@ -20,19 +20,35 @@
 	</properties>
 
   <dependencies>
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.cloud</groupId>-->
+<!--      <artifactId>spring-cloud-starter-function-web</artifactId>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework.cloud</groupId>-->
+<!--      <artifactId>spring-cloud-function-compiler</artifactId>-->
+<!--      <version>2.1.1.RELEASE</version>-->
+<!--    </dependency>-->
+
     <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-function-web</artifactId>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-lambda-java-core</artifactId>
+      <version>1.2.2</version>
     </dependency>
     <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-function-compiler</artifactId>
-      <version>2.1.1.RELEASE</version>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-lambda-java-events</artifactId>
+      <version>3.11.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-function-adapter-aws</artifactId>
+      <version>3.2.8</version>
     </dependency>
   </dependencies>
 
@@ -50,10 +66,7 @@
 <!--			<groupId>org.springframework.cloud</groupId>-->
 <!--			<artifactId>spring-cloud-function-web</artifactId>-->
 <!--		</dependency>-->
-<!--    <dependency>-->
-<!--      <groupId>org.springframework.cloud</groupId>-->
-<!--      <artifactId>spring-cloud-function-adapter-aws</artifactId>-->
-<!--    </dependency>-->
+
 <!--  </dependencies>-->
 
 
@@ -74,13 +87,13 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-<!--        <dependencies>-->
-<!--          <dependency>-->
-<!--            <groupId>org.springframework.boot.experimental</groupId>-->
-<!--            <artifactId>spring-boot-thin-layout</artifactId>-->
-<!--            <version>1.0.28.RELEASE</version>-->
-<!--          </dependency>-->
-<!--        </dependencies>-->
+        <dependencies>
+          <dependency>
+            <groupId>org.springframework.boot.experimental</groupId>
+            <artifactId>spring-boot-thin-layout</artifactId>
+            <version>1.0.28.RELEASE</version>
+          </dependency>
+        </dependencies>
 			</plugin>
 
 <!--      <plugin>-->
@@ -90,16 +103,16 @@
 <!--          <skip>true</skip>-->
 <!--        </configuration>-->
 <!--      </plugin>-->
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-shade-plugin</artifactId>-->
-<!--        <version>3.2.4</version>-->
-<!--        <configuration>-->
-<!--          <createDependencyReducedPom>false</createDependencyReducedPom>-->
-<!--          <shadedArtifactAttached>true</shadedArtifactAttached>-->
-<!--          <shadedClassifierName>aws</shadedClassifierName>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.4</version>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+          <shadedArtifactAttached>true</shadedArtifactAttached>
+          <shadedClassifierName>aws</shadedClassifierName>
+        </configuration>
+      </plugin>
 		</plugins>
 	</build>
 	<repositories>
