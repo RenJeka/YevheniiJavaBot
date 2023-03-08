@@ -1,8 +1,6 @@
 package website.yevhenii.yevheniiJavaBot;
 
-import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +13,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import java.util.function.Function;
 
 @Component
-public class AWSLambdaHandler implements Function<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+public class AWSLambdaHandler implements Function<Update, APIGatewayProxyResponseEvent> {
 
     @Value("${telegrambotWebhookURI}")
     String telegrambotWebhookURI;
@@ -23,18 +21,20 @@ public class AWSLambdaHandler implements Function<APIGatewayProxyRequestEvent, A
     private static final Logger logger = LoggerFactory.getLogger(AWSLambdaHandler.class);
 
     private YevheniiSpringAWSBot yevheniiSpringAWSBot;
-    ObjectMapper objectMapper = new ObjectMapper();
 
     public AWSLambdaHandler(YevheniiSpringAWSBot yevheniiSpringAWSBot) {
         this.yevheniiSpringAWSBot = yevheniiSpringAWSBot;
     }
 
     @Override
-    public APIGatewayProxyResponseEvent apply(APIGatewayProxyRequestEvent input) {
+    public APIGatewayProxyResponseEvent apply(Update update) {
+
+
+        logger.info(update.getMessage().getText());
+
         try {
             TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
             api.registerBot(yevheniiSpringAWSBot, setWebhook());
-            Update update = objectMapper.readValue(input.getBody(), Update.class);
             yevheniiSpringAWSBot.onWebhookUpdateReceived(update, logger);
             APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
             response.setStatusCode(200);
