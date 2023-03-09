@@ -84,6 +84,11 @@
             <version>1.0.28.RELEASE</version>
           </dependency>
         </dependencies>
+<!--        <configuration>-->
+<!--          <profiles>-->
+<!--            <profile>dev</profile>-->
+<!--          </profiles>-->
+<!--        </configuration>-->
 			</plugin>
 
       <plugin>
@@ -134,5 +139,23 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+
+  <profiles>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <spring.profiles.active>dev</spring.profiles.active>
+      </properties>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+    <profile>
+      <id>prod</id>
+      <properties>
+        <spring.profiles.active>prod</spring.profiles.active>
+      </properties>
+    </profile>
+  </profiles>
 
 </project>
