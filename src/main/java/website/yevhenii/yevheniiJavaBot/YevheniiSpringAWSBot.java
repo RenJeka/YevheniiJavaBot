@@ -1,5 +1,6 @@
 package website.yevhenii.yevheniiJavaBot;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
@@ -12,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.slf4j.Logger;
-import website.yevhenii.yevheniiJavaBot.currency_parser.parser.Parser;
+import website.yevhenii.yevheniiJavaBot.services.CurrencyRatesService;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,13 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     public String path;
     @Value("${paths.image}")
     String imagePath;
+
+    private CurrencyRatesService currencyRatesService = new CurrencyRatesService();
+
+    @Autowired
+    public void setCurrencyRatesService(CurrencyRatesService currencyRatesService) {
+        this.currencyRatesService = currencyRatesService;
+    }
 
     private final LinkedList<LinkedHashMap<String, String>> keyboardButtons = getKeyboardButtons();
 
@@ -259,7 +267,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         sendImage("exchange_rate", getChatId(update), logger);
 
         try {
-            String formattedCurrencyRates = Parser.getFormattedCurrencyRates();
+            String formattedCurrencyRates = currencyRatesService.getFormattedCurrencyRates();
             SendMessage message = createMessage(formattedCurrencyRates, getChatId(update));
             attachButtons(message);
             execute(message);
