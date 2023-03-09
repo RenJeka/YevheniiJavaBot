@@ -1,6 +1,5 @@
 package website.yevhenii.yevheniiJavaBot;
 
-import org.slf4j.Marker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
@@ -18,10 +17,7 @@ import website.yevhenii.yevheniiJavaBot.currency_parser.parser.Parser;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class YevheniiSpringAWSBot extends TelegramWebhookBot {
@@ -33,16 +29,25 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     @Value("${paths.image}")
     String imagePath;
 
-    private final LinkedHashMap<String, String> keyboardButtons = getKeyboardButtons();
+    private final LinkedList<LinkedHashMap<String, String>> keyboardButtons = getKeyboardButtons();
 
-    private LinkedHashMap<String, String> getKeyboardButtons() {
-        LinkedHashMap buttons = new LinkedHashMap<>();
+    private LinkedList<LinkedHashMap<String, String>> getKeyboardButtons() {
+        LinkedList<LinkedHashMap<String, String>> keyboard = new LinkedList();
 
-        buttons.put("General Info about this bot", "general_info");
-        buttons.put("Technology stack", "technology_stack");
-        buttons.put("My business card", "business_card");
-        buttons.put("Get NBU currency rates", "currency_rate");
-        return buttons;
+        LinkedHashMap row1 = new LinkedHashMap<>();
+        LinkedHashMap row2 = new LinkedHashMap<>();
+
+        row1.put("General Info about this bot", "general_info");
+        row1.put("Technology stack", "technology_stack");
+
+        row2.put("My business card", "business_card");
+        row2.put("Get NBU currency rates", "currency_rate");
+
+
+        keyboard.add(row1);
+        keyboard.add(row2);
+
+        return keyboard;
     }
 
     public YevheniiSpringAWSBot(@Value("${telegrambotToken}")String token) {
@@ -115,14 +120,21 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
-        for (String buttonName : keyboardButtons.keySet()) {
-            String buttonValue = keyboardButtons.get(buttonName);
+//        button rows loop
+        for (LinkedHashMap<String, String> buttonsRow : keyboardButtons) {
 
-            InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText(getCorrectText(buttonName));
-            button.setCallbackData(buttonValue);
+        List<InlineKeyboardButton> keyboardRow = new ArrayList<>();
+//        button columns loop
+            for (String buttonName : buttonsRow.keySet()) {
+                String buttonValue = buttonsRow.get(buttonName);
 
-            keyboard.add(Arrays.asList(button));
+                InlineKeyboardButton button = new InlineKeyboardButton();
+                button.setText(getCorrectText(buttonName));
+                button.setCallbackData(buttonValue);
+
+                keyboardRow.add(button);
+            }
+            keyboard.add(keyboardRow);
         }
 
         markup.setKeyboard(keyboard);
