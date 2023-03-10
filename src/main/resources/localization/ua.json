@@ -1,3 +1,7 @@
 {
+  "generalInfoBtn": "Загальна інформація",
+  "technologyStackBtn": "Технологічний стек",
+  "businessCardBtn": "Моя візитівка",
+  "currencyRateBtn": "Курс валют НБУ",
   "greetingUser": "Привіт, %s! Це мій простий телеграм бот на Java Spring. Щоб дізнатись більше про нього — користуйся кнопками нижче ⬇:"
 }

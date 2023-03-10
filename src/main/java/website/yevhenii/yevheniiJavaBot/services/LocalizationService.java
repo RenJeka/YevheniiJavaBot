@@ -14,24 +14,41 @@ public class LocalizationService {
     @Value("${paths.localization}")
     String localizationFolderPath;
 
-    public Map<Long, Localizations> getUsersLocalizationStorage() {
+    public Localizations getDefaultLocalizations() {
+        return defaultLocalizations;
+    }
+
+    private Localizations defaultLocalizations = Localizations.EN;
+
+    public Map<String, Localizations> getUsersLocalizationStorage() {
         return usersLocalizationStorage;
     }
 
-    private final Map<Long, Localizations> usersLocalizationStorage = new HashMap();
+    private final Map<String, Localizations> usersLocalizationStorage = new HashMap();
 
     private final Map<Localizations, String> localDictionaryFileNames = Map.of(
             Localizations.EN, "en.json",
             Localizations.UA, "ua.json"
     );
 
+    public Localization getDefaultDictionary() {
+        String fileName = localDictionaryFileNames.get(defaultLocalizations);
+        return getLocalDictionary(fileName);
+    }
+
     public Localization getDictionaryForUser(Long chatId) {
+        return getDictionaryForUser(chatId.toString());
+    }
+    public Localization getDictionaryForUser(String chatId) {
         Localizations userLocalization = getUserLocalization(chatId);
         String fileName = localDictionaryFileNames.get(userLocalization);
         return getLocalDictionary(fileName);
     }
 
-    public void setUserLocalization(Long chatId, Localizations localizations) {
+    public void setUserLocalization(Long chatId, Localizations localizations){
+        setUserLocalization(chatId.toString(), localizations);
+    }
+    public void setUserLocalization(String chatId, Localizations localizations) {
 
         switch (localizations) {
             case UA:
@@ -39,12 +56,22 @@ public class LocalizationService {
                 break;
 
             default:
-                usersLocalizationStorage.put(chatId, Localizations.EN);
+                usersLocalizationStorage.put(chatId, defaultLocalizations);
                 break;
         }
     }
 
-    private Localizations getUserLocalization(Long chatId) {
+    @Override
+    public String toString() {
+        return "LocalizationService{" +
+                "localizationFolderPath='" + localizationFolderPath + '\'' +
+                ", defaultLocalizations=" + defaultLocalizations +
+                ", usersLocalizationStorage=" + usersLocalizationStorage +
+                ", localDictionaryFileNames=" + localDictionaryFileNames +
+                '}';
+    }
+
+    private Localizations getUserLocalization(String chatId) {
         if (getUsersLocalizationStorage().containsKey(chatId)) {
             return getUsersLocalizationStorage().get(chatId);
         } else {

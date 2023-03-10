@@ -1,3 +1,7 @@
 {
+  "generalInfoBtn": "General Info about this bot",
+  "technologyStackBtn": "Technology stack",
+  "businessCardBtn": "My business card",
+  "currencyRateBtn": "Get NBU currency rates",
   "greetingUser": "Hello, %s! This is my simple Telegram bot on Java Spring! Please, use menu below to know more about it ⬇:"
 }
