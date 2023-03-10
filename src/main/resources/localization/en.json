@@ -3,5 +3,7 @@
   "technologyStackBtn": "Technology stack",
   "businessCardBtn": "My business card",
   "currencyRateBtn": "Get NBU currency rates",
-  "greetingUser": "Hello, %s! This is my simple Telegram bot on Java Spring! Please, use menu below to know more about it ⬇:"
+  "greetingUser": "Hello, %s! This is my simple Telegram bot on Java Spring! Please, use menu below to know more about it ⬇:",
+  "generalInfo": "This is simple project to show my experience in Java and related technologies (see \"*technology stack*\"); \n\nThe bot can output text, images and give information by pressing the buttons.\n\nThink of it like a business card bot.\nSee the project via this [GitHub link](https://github.com/RenJeka/Study/tree/master/Java_projects/hello-lambda-core)",
+  "technologyStack": "This project was built by using: \n✔️ Java POJO;\n✔️ Java Corretto 11 SDK;\n✔️ Software project management — 'Maven';\n✔️ 'telegrambots' Java library;\n✔️ Telegram webhooks (to get info prom telegram);\n✔️ AWS Lambda\n"
 }

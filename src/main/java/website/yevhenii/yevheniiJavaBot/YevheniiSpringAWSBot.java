@@ -189,13 +189,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
     private void giveGeneralInfo(Update update, Logger logger) {
         SendMessage message = createMessage(
-                "This is simple project to show my experience in Java and related technologies (see \"*technology stack*\"); \n" +
-                        "\n" +
-                        "The bot can output text, images and give information by pressing the buttons.\n" +
-                        "\n" +
-                        "Think of it like a business card bot." +
-                        "\n" +
-                        "See the project via this [GitHub link](https://github.com/RenJeka/Study/tree/master/Java_projects/hello-lambda-core)",
+                localizationService.getDictionaryForUser(getChatId(update)).generalInfo,
                 getChatId(update));
 
         buttonService.attachButtons(message);
@@ -209,13 +203,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
     private void giveTechnologyStack(Update update, Logger logger) {
         SendMessage message = createMessage(
-                "This project was built by using: \n" +
-                        " ✔️ Java POJO;\n" +
-                        " ✔️ Java Corretto 11 SDK;\n" +
-                        " ✔️ Software project management — 'Maven';\n" +
-                        " ✔️ 'telegrambots' Java library;\n" +
-                        " ✔️ Telegram webhooks (to get info prom telegram);\n" +
-                        " ✔️ AWS Lambda\n",
+                localizationService.getDictionaryForUser(getChatId(update)).technologyStack,
                 getChatId(update));
 
         buttonService.attachButtons(message);

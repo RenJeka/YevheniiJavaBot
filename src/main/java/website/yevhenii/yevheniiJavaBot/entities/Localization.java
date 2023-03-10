@@ -7,5 +7,6 @@ public class Localization {
     public String technologyStackBtn;
     public String businessCardBtn;
     public String currencyRateBtn;
-
+    public String generalInfo;
+    public String technologyStack;
 }
