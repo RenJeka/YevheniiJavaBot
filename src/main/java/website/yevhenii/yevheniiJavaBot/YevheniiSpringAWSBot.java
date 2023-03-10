@@ -7,6 +7,7 @@ import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -14,6 +15,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.slf4j.Logger;
 import website.yevhenii.yevheniiJavaBot.entities.Localization;
+import website.yevhenii.yevheniiJavaBot.enums.ButtonsSet;
+import website.yevhenii.yevheniiJavaBot.enums.Localizations;
 import website.yevhenii.yevheniiJavaBot.services.CurrencyRatesService;
 import website.yevhenii.yevheniiJavaBot.services.LocalizationService;
 
@@ -46,14 +49,13 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         this.localizationService = localizationService;
     }
 
-    private final LinkedList<LinkedHashMap<String, String>> keyboardButtons = getKeyboardButtons();
+    private final LinkedList<LinkedHashMap<String, String>> generalButtons = getGeneralButtons();
 
-    private LinkedList<LinkedHashMap<String, String>> getKeyboardButtons() {
+    private LinkedList<LinkedHashMap<String, String>> getGeneralButtons() {
         LinkedList<LinkedHashMap<String, String>> keyboard = new LinkedList();
 
         LinkedHashMap row1 = new LinkedHashMap<>();
         LinkedHashMap row2 = new LinkedHashMap<>();
-        LinkedHashMap row3 = new LinkedHashMap<>();
 
         row1.put("General Info about this bot", "general_info");
         row1.put("Technology stack", "technology_stack");
@@ -61,13 +63,23 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         row2.put("My business card", "business_card");
         row2.put("Get NBU currency rates", "currency_rate");
 
-        row3.put("en", "en");
-        row3.put("ua", "ua");
-
-
         keyboard.add(row1);
         keyboard.add(row2);
-        keyboard.add(row3);
+
+        return keyboard;
+    }
+
+    private final LinkedList<LinkedHashMap<String, String>> localizationButtons = getLocalizationButtons();
+
+    private LinkedList<LinkedHashMap<String, String>> getLocalizationButtons() {
+        LinkedList<LinkedHashMap<String, String>> keyboard = new LinkedList();
+
+        LinkedHashMap row1 = new LinkedHashMap<>();
+
+        row1.put("en", "en");
+        row1.put("ua", "ua");
+
+        keyboard.add(row1);
 
         return keyboard;
     }
@@ -84,7 +96,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         if (update.hasMessage()) {
             String updateMessage = update.getMessage().getText();
             if (updateMessage.equals("/start")) {
-                greetingUser(update, logger);
+                letUserChooseLocalization(update, logger);
             } else {
                 giveCommonAnswer(update, logger);
             }
@@ -100,9 +112,11 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
             } else if (update.getCallbackQuery().getData().equals("currency_rate")) {
                 giveCurrencyRates(update, logger);
             } else if (update.getCallbackQuery().getData().equals("en")) {
-                giveLocaleMessage("en", update, logger);
+                localizationService.setUserLocalization(getChatId(update), Localizations.EN);
+                greetingUser(update, logger);
             } else if (update.getCallbackQuery().getData().equals("ua")) {
-                giveLocaleMessage("ua", update, logger);
+                localizationService.setUserLocalization(getChatId(update), Localizations.UA);
+                greetingUser(update, logger);
             }
         }
         return null;
@@ -130,7 +144,6 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         return null;
     }
 
-
     private SendMessage createMessage(String text, Long chatId) {
 
         SendMessage sendMessage = new SendMessage();
@@ -140,14 +153,20 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         return sendMessage;
     }
 
+    // MOVE ALL LOGIC WITH BUTTONS INTO BUTTON SERVICE
 
     private void attachButtons(SendMessage message) {
+        attachButtons(message, ButtonsSet.GENERAL);
+    }
+    private void attachButtons(SendMessage message, ButtonsSet buttonsSetType) {
+        LinkedList<LinkedHashMap<String, String>> buttonsSet = getButtonsSet(buttonsSetType);
+
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
 
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
 
 //        button rows loop
-        for (LinkedHashMap<String, String> buttonsRow : keyboardButtons) {
+        for (LinkedHashMap<String, String> buttonsRow : buttonsSet) {
 
         List<InlineKeyboardButton> keyboardRow = new ArrayList<>();
 //        button columns loop
@@ -168,6 +187,16 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
     }
 
+    private LinkedList<LinkedHashMap<String, String>> getButtonsSet(ButtonsSet buttonsSet) {
+        switch (buttonsSet) {
+            case LOCALIZATION:
+                return (LinkedList<LinkedHashMap<String, String>>) localizationButtons.clone();
+            default:
+                return (LinkedList<LinkedHashMap<String, String>>) generalButtons.clone();
+        }
+
+    }
+
     /**
      * Helper method to get text in correct encoding
      * @param text
@@ -177,18 +206,49 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         return new String(text.getBytes(), StandardCharsets.UTF_8);
     }
 
-    private String getGreetingMessage(Update update) {
-        String firstName = !(update.getMessage().getFrom().getFirstName()).isEmpty() ? update.getMessage().getFrom().getFirstName() : "";
-        String lastName = !(update.getMessage().getFrom().getLastName()).isEmpty() ? update.getMessage().getFrom().getLastName() : "";
-
-        String userName = firstName + " " + lastName;
-        return String.format("Hello, %s! This is my simple Telegram bot on Java Spring! Please, use menu below to know more about it. ", userName);
+    private String getChooseLocalizationMessage(Update update) {
+        return String.format("Please Choose language: ");
     }
+
+    private String getGreetingMessage(Update update) {
+        Localization userDictionary = localizationService.getDictionaryForUser(getChatId(update));
+        return String.format(userDictionary.greetingUser, getUserName(update));
+    }
+
+    private String getUserName(Update update) {
+        String firstName = "";
+        String lastName = "";
+
+        if (update.hasMessage()) {
+            firstName = !(update.getMessage().getFrom().getFirstName()).isEmpty() ? update.getMessage().getFrom().getFirstName() : "";
+            lastName = !(update.getMessage().getFrom().getLastName()).isEmpty() ? update.getMessage().getFrom().getLastName() : "";
+        }
+
+        if (update.hasCallbackQuery()) {
+            firstName = !(update.getCallbackQuery().getFrom().getFirstName()).isEmpty() ? update.getCallbackQuery().getFrom().getFirstName() : "";
+            lastName = !(update.getCallbackQuery().getFrom().getLastName()).isEmpty() ? update.getCallbackQuery().getFrom().getLastName() : "";
+        }
+
+        return firstName + " " + lastName;
+    }
+
 
     private void greetingUser(Update update, Logger logger) {
         SendMessage message = createMessage(getGreetingMessage(update), getChatId(update));
 
         attachButtons(message);
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            logger.error("Error, while sending message: " + e.getStackTrace().toString());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void letUserChooseLocalization(Update update, Logger logger) {
+        SendMessage message = createMessage(getChooseLocalizationMessage(update), getChatId(update));
+
+        attachButtons(message, ButtonsSet.LOCALIZATION);
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -311,26 +371,5 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
             throw new RuntimeException(e);
         }
 
-    }
-
-    private void giveLocaleMessage(String locale, Update update, Logger logger) {
-        Localization localizationDictionary = null;
-        if (locale.equals("en")) {
-            localizationDictionary = localizationService.getLocalization("en.json");
-
-        } else if (locale.equals("ua")) {
-            localizationDictionary = localizationService.getLocalization("ua.json");
-        }
-
-        SendMessage message = createMessage(localizationDictionary.hello,
-                getChatId(update));
-
-        attachButtons(message);
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            logger.error("Error, while sending message: " + e.getStackTrace().toString());
-            throw new RuntimeException(e);
-        }
     }
 }
