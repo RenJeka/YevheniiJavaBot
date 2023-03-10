@@ -7,23 +7,20 @@ import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.slf4j.Logger;
 import website.yevhenii.yevheniiJavaBot.entities.Localization;
 import website.yevhenii.yevheniiJavaBot.enums.ButtonsSet;
 import website.yevhenii.yevheniiJavaBot.enums.Localizations;
+import website.yevhenii.yevheniiJavaBot.services.ButtonService;
 import website.yevhenii.yevheniiJavaBot.services.CurrencyRatesService;
 import website.yevhenii.yevheniiJavaBot.services.LocalizationService;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 @Component
 public class YevheniiSpringAWSBot extends TelegramWebhookBot {
@@ -35,13 +32,6 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     @Value("${paths.image}")
     String imagePath;
 
-    private CurrencyRatesService currencyRatesService;
-
-    @Autowired
-    public void setCurrencyRatesService(CurrencyRatesService currencyRatesService) {
-        this.currencyRatesService = currencyRatesService;
-    }
-
     private LocalizationService localizationService;
 
     @Autowired
@@ -49,39 +39,18 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         this.localizationService = localizationService;
     }
 
-    private final LinkedList<LinkedHashMap<String, String>> generalButtons = getGeneralButtons();
+    private ButtonService buttonService;
 
-    private LinkedList<LinkedHashMap<String, String>> getGeneralButtons() {
-        LinkedList<LinkedHashMap<String, String>> keyboard = new LinkedList();
-
-        LinkedHashMap row1 = new LinkedHashMap<>();
-        LinkedHashMap row2 = new LinkedHashMap<>();
-
-        row1.put("General Info about this bot", "general_info");
-        row1.put("Technology stack", "technology_stack");
-
-        row2.put("My business card", "business_card");
-        row2.put("Get NBU currency rates", "currency_rate");
-
-        keyboard.add(row1);
-        keyboard.add(row2);
-
-        return keyboard;
+    @Autowired
+    public void setButtonService(ButtonService buttonService) {
+        this.buttonService = buttonService;
     }
 
-    private final LinkedList<LinkedHashMap<String, String>> localizationButtons = getLocalizationButtons();
+    private CurrencyRatesService currencyRatesService;
 
-    private LinkedList<LinkedHashMap<String, String>> getLocalizationButtons() {
-        LinkedList<LinkedHashMap<String, String>> keyboard = new LinkedList();
-
-        LinkedHashMap row1 = new LinkedHashMap<>();
-
-        row1.put("en", "en");
-        row1.put("ua", "ua");
-
-        keyboard.add(row1);
-
-        return keyboard;
+    @Autowired
+    public void setCurrencyRatesService(CurrencyRatesService currencyRatesService) {
+        this.currencyRatesService = currencyRatesService;
     }
 
     public YevheniiSpringAWSBot(@Value("${telegrambotToken}")String token) {
@@ -153,59 +122,6 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         return sendMessage;
     }
 
-    // MOVE ALL LOGIC WITH BUTTONS INTO BUTTON SERVICE
-
-    private void attachButtons(SendMessage message) {
-        attachButtons(message, ButtonsSet.GENERAL);
-    }
-    private void attachButtons(SendMessage message, ButtonsSet buttonsSetType) {
-        LinkedList<LinkedHashMap<String, String>> buttonsSet = getButtonsSet(buttonsSetType);
-
-        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
-
-        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-
-//        button rows loop
-        for (LinkedHashMap<String, String> buttonsRow : buttonsSet) {
-
-        List<InlineKeyboardButton> keyboardRow = new ArrayList<>();
-//        button columns loop
-            for (String buttonName : buttonsRow.keySet()) {
-                String buttonValue = buttonsRow.get(buttonName);
-
-                InlineKeyboardButton button = new InlineKeyboardButton();
-                button.setText(getCorrectText(buttonName));
-                button.setCallbackData(buttonValue);
-
-                keyboardRow.add(button);
-            }
-            keyboard.add(keyboardRow);
-        }
-
-        markup.setKeyboard(keyboard);
-        message.setReplyMarkup(markup);
-
-    }
-
-    private LinkedList<LinkedHashMap<String, String>> getButtonsSet(ButtonsSet buttonsSet) {
-        switch (buttonsSet) {
-            case LOCALIZATION:
-                return (LinkedList<LinkedHashMap<String, String>>) localizationButtons.clone();
-            default:
-                return (LinkedList<LinkedHashMap<String, String>>) generalButtons.clone();
-        }
-
-    }
-
-    /**
-     * Helper method to get text in correct encoding
-     * @param text
-     * @return
-     */
-    private String getCorrectText(String text) {
-        return new String(text.getBytes(), StandardCharsets.UTF_8);
-    }
-
     private String getChooseLocalizationMessage(Update update) {
         return String.format("Please Choose language: ");
     }
@@ -236,7 +152,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     private void greetingUser(Update update, Logger logger) {
         SendMessage message = createMessage(getGreetingMessage(update), getChatId(update));
 
-        attachButtons(message);
+        buttonService.attachButtons(message);
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -248,7 +164,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     private void letUserChooseLocalization(Update update, Logger logger) {
         SendMessage message = createMessage(getChooseLocalizationMessage(update), getChatId(update));
 
-        attachButtons(message, ButtonsSet.LOCALIZATION);
+        buttonService.attachButtons(message, ButtonsSet.LOCALIZATION);
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -262,7 +178,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         SendMessage message = createMessage(
                 "You said: '" + updateText + "', but this bot very simple and do only actions below",
                 getChatId(update));
-        attachButtons(message);
+        buttonService.attachButtons(message);
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -282,7 +198,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
                         "See the project via this [GitHub link](https://github.com/RenJeka/Study/tree/master/Java_projects/hello-lambda-core)",
                 getChatId(update));
 
-        attachButtons(message);
+        buttonService.attachButtons(message);
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -302,7 +218,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
                         " ✔️ AWS Lambda\n",
                 getChatId(update));
 
-        attachButtons(message);
+        buttonService.attachButtons(message);
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -331,7 +247,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
                         "Of course, you can contact me by clicking on [this telegram link](https://t.me/RenJeka).\n",
                 getChatId(update));
 
-        attachButtons(message);
+        buttonService.attachButtons(message);
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -347,7 +263,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         try {
             String formattedCurrencyRates = currencyRatesService.getFormattedCurrencyRates();
             SendMessage message = createMessage(formattedCurrencyRates, getChatId(update));
-            attachButtons(message);
+            buttonService.attachButtons(message);
             execute(message);
         } catch (TelegramApiException | IOException e) {
             logger.error("Error, while sending message: " + e.getStackTrace().toString());
