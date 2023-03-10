@@ -1,13 +1,10 @@
 package website.yevhenii.yevheniiJavaBot.services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-import website.yevhenii.yevheniiJavaBot.currency_parser.entity.CurrencyRate;
-import website.yevhenii.yevheniiJavaBot.currency_parser.parser.Parser;
+import website.yevhenii.yevheniiJavaBot.entities.CurrencyRate;
 
 import java.io.IOException;
 import java.math.RoundingMode;
-import java.net.URL;
 
 @Service
 public class CurrencyRatesService {

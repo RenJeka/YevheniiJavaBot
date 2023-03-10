@@ -13,7 +13,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.slf4j.Logger;
+import website.yevhenii.yevheniiJavaBot.entities.Localization;
 import website.yevhenii.yevheniiJavaBot.services.CurrencyRatesService;
+import website.yevhenii.yevheniiJavaBot.services.LocalizationService;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,11 +32,18 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     @Value("${paths.image}")
     String imagePath;
 
-    private CurrencyRatesService currencyRatesService = new CurrencyRatesService();
+    private CurrencyRatesService currencyRatesService;
 
     @Autowired
     public void setCurrencyRatesService(CurrencyRatesService currencyRatesService) {
         this.currencyRatesService = currencyRatesService;
+    }
+
+    private LocalizationService localizationService;
+
+    @Autowired
+    public void setLocalizationService(LocalizationService localizationService) {
+        this.localizationService = localizationService;
     }
 
     private final LinkedList<LinkedHashMap<String, String>> keyboardButtons = getKeyboardButtons();
@@ -44,6 +53,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
         LinkedHashMap row1 = new LinkedHashMap<>();
         LinkedHashMap row2 = new LinkedHashMap<>();
+        LinkedHashMap row3 = new LinkedHashMap<>();
 
         row1.put("General Info about this bot", "general_info");
         row1.put("Technology stack", "technology_stack");
@@ -51,9 +61,13 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         row2.put("My business card", "business_card");
         row2.put("Get NBU currency rates", "currency_rate");
 
+        row3.put("en", "en");
+        row3.put("ua", "ua");
+
 
         keyboard.add(row1);
         keyboard.add(row2);
+        keyboard.add(row3);
 
         return keyboard;
     }
@@ -85,6 +99,10 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
                 giveBusinessCard(update, logger);
             } else if (update.getCallbackQuery().getData().equals("currency_rate")) {
                 giveCurrencyRates(update, logger);
+            } else if (update.getCallbackQuery().getData().equals("en")) {
+                giveLocaleMessage("en", update, logger);
+            } else if (update.getCallbackQuery().getData().equals("ua")) {
+                giveLocaleMessage("ua", update, logger);
             }
         }
         return null;
@@ -277,7 +295,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         }
     }
 
-    public void sendImage(String name, Long chatId, Logger logger) {
+    private void sendImage(String name, Long chatId, Logger logger) {
         SendPhoto photo = new SendPhoto();
         InputFile inputFile = new InputFile();
 
@@ -293,5 +311,26 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private void giveLocaleMessage(String locale, Update update, Logger logger) {
+        Localization localizationDictionary = null;
+        if (locale.equals("en")) {
+            localizationDictionary = localizationService.getLocalization("en.json");
+
+        } else if (locale.equals("ua")) {
+            localizationDictionary = localizationService.getLocalization("ua.json");
+        }
+
+        SendMessage message = createMessage(localizationDictionary.hello,
+                getChatId(update));
+
+        attachButtons(message);
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            logger.error("Error, while sending message: " + e.getStackTrace().toString());
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -1,4 +1,4 @@
-package website.yevhenii.yevheniiJavaBot.currency_parser.entity;
+package website.yevhenii.yevheniiJavaBot.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
