@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>website.yevhenii</groupId>
 	<artifactId>yevheniiJavaBot</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>yevheniiJavaBot</name>
 	<description>Telegram bot, created by Java Spring boot applacation</description>
 

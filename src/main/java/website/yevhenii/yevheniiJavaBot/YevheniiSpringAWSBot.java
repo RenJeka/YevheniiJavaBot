@@ -15,6 +15,7 @@ import website.yevhenii.yevheniiJavaBot.enums.Localizations;
 import website.yevhenii.yevheniiJavaBot.services.ButtonService;
 import website.yevhenii.yevheniiJavaBot.services.LocalizationService;
 import website.yevhenii.yevheniiJavaBot.services.MessageService;
+import website.yevhenii.yevheniiJavaBot.services.UserService;
 
 @Component
 public class YevheniiSpringAWSBot extends TelegramWebhookBot {
@@ -28,6 +29,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
     private LocalizationService localizationService;
     private MessageService messageService;
+    private UserService userService;
 
     @Autowired
     public void setLocalizationService(LocalizationService localizationService) {
@@ -39,13 +41,18 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         this.messageService = messageService;
     }
 
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
     public YevheniiSpringAWSBot(@Value("${telegrambotToken}")String token) {
         super(token);
     }
 
     @Override
     public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-        if (update.hasMessage()) {
+        if (update.hasMessage() && update.getMessage().getText() != null) {
             String updateMessage = update.getMessage().getText();
             if (updateMessage.equals("/start")) {
                 executeContent(messageService.letUserChooseLocalization(update));
@@ -57,26 +64,26 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         if (update.hasCallbackQuery()) {
             switch (update.getCallbackQuery().getData()) {
                 case ("locale_en"):
-                    localizationService.setUserLocalization(getChatId(update), Localizations.EN);
-                    executeContent(messageService.greetingUser(update));
+                    localizationService.setUserLocalization(userService.getChatId(update), Localizations.EN);
+                    executeContent(messageService.getGreetingMessage(update));
                     break;
                 case ("locale_ua"):
-                    localizationService.setUserLocalization(getChatId(update), Localizations.UA);
-                    executeContent(messageService.greetingUser(update));
+                    localizationService.setUserLocalization(userService.getChatId(update), Localizations.UA);
+                    executeContent(messageService.getGreetingMessage(update));
                     break;
                 case ("general_info"):
-                    executeContent(messageService.giveGeneralInfo(update));
+                    executeContent(messageService.getGeneralInfoMessage(update));
                     break;
                 case ("technology_stack"):
-                    executeContent(messageService.giveTechnologyStack(update));
+                    executeContent(messageService.getTechnologyStackMessage(update));
                     break;
                 case ("business_card"):
-                    executeContent(messageService.sendImage("photo", getChatId(update)));
-                    executeContent(messageService.giveBusinessCard(update));
+                    executeContent(messageService.getPhotoMessage("photo", userService.getChatId(update)));
+                    executeContent(messageService.getBusinessCardMessage(update));
                     break;
                 case ("currency_rate"):
-                    executeContent(messageService.sendImage("exchange_rate", getChatId(update)));
-                    executeContent(messageService.giveCurrencyRates(update));
+                    executeContent(messageService.getPhotoMessage("exchange_rate", userService.getChatId(update)));
+                    executeContent(messageService.getCurrencyRatesMassage(update));
                     break;
 
                 default:
@@ -96,23 +103,11 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         return username;
     }
 
-    public Long getChatId(Update update) {
-        if (update.hasMessage()) {
-            return update.getMessage().getFrom().getId();
-        }
-
-        if (update.hasCallbackQuery()) {
-            return update.getCallbackQuery().getFrom().getId();
-        }
-
-        return null;
-    }
-
     private void executeContent(SendPhoto photo) {
         try {
             execute(photo);
         } catch (TelegramApiException e) {
-            logger.error("Error, while sending photo: " + e.getStackTrace().toString());
+            logger.error("Error, while sending photo: ", e);
             throw new RuntimeException(e);
         }
     }
@@ -120,7 +115,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            logger.error("Error, while sending message: " + e.getStackTrace().toString());
+            logger.error("Error, while sending message: ", e);
             throw new RuntimeException(e);
         }
     }

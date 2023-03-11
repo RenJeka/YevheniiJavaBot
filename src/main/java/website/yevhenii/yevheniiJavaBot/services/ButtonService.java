@@ -1,7 +1,5 @@
 package website.yevhenii.yevheniiJavaBot.services;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -18,8 +16,6 @@ import java.util.List;
 
 @Service
 public class ButtonService {
-
-//    private static final Logger logger = LoggerFactory.getLogger(ButtonService.class);
 
     private LocalizationService localizationService;
 

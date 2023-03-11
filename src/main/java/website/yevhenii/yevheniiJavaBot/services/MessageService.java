@@ -20,9 +20,10 @@ public class MessageService {
     @Value("${paths.image}")
     String imagePath;
 
-    LocalizationService localizationService;
-    ButtonService buttonService;
-    CurrencyRatesService currencyRatesService;
+    private LocalizationService localizationService;
+    private ButtonService buttonService;
+    private CurrencyRatesService currencyRatesService;
+    private UserService userService;
 
     @Autowired
     public void setLocalizationService(LocalizationService localizationService) {
@@ -39,15 +40,22 @@ public class MessageService {
         this.currencyRatesService = currencyRatesService;
     }
 
-    public SendMessage greetingUser(Update update) {
-        SendMessage message = createMessage(getGreetingMessage(update), getChatId(update));
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    public SendMessage getGreetingMessage(Update update) {
+        Localization userDictionary = localizationService.getDictionaryForUser(userService.getChatId(update));
+        String formattingMessage = String.format(userDictionary.greetingUser, userService.getUserName(update));
+        SendMessage message = createMessage(formattingMessage, userService.getChatId(update));
 
         buttonService.attachButtons(message);
         return message;
     }
 
     public SendMessage letUserChooseLocalization(Update update) {
-        SendMessage message = createMessage(getChooseLocalizationMessage(), getChatId(update));
+        SendMessage message = createMessage(getChooseLocalizationMessage(), userService.getChatId(update));
 
         buttonService.attachButtons(message, ButtonsSet.LOCALIZATION);
         return message;
@@ -55,51 +63,51 @@ public class MessageService {
 
     public SendMessage giveCommonAnswer(Update update) {
         String updateText = update.getMessage().getText();
-        SendMessage message = createMessage(String.format(localizationService.getDictionaryForUser(getChatId(update)).commonAnswerForUsersMessage, updateText),
-                getChatId(update));
+        SendMessage message = createMessage(String.format(localizationService.getDictionaryForUser(userService.getChatId(update)).commonAnswerForUsersMessage, updateText),
+                userService.getChatId(update));
         buttonService.attachButtons(message);
         return message;
     }
 
-    public SendMessage giveGeneralInfo(Update update) {
+    public SendMessage getGeneralInfoMessage(Update update) {
         SendMessage message = createMessage(
-                localizationService.getDictionaryForUser(getChatId(update)).generalInfo,
-                getChatId(update));
+                localizationService.getDictionaryForUser(userService.getChatId(update)).generalInfo,
+                userService.getChatId(update));
 
         buttonService.attachButtons(message);
         return message;
     }
 
-    public SendMessage giveTechnologyStack(Update update) {
+    public SendMessage getTechnologyStackMessage(Update update) {
         SendMessage message = createMessage(
-                localizationService.getDictionaryForUser(getChatId(update)).technologyStack,
-                getChatId(update));
+                localizationService.getDictionaryForUser(userService.getChatId(update)).technologyStack,
+                userService.getChatId(update));
 
         buttonService.attachButtons(message);
         return message;
     }
 
-    public SendMessage giveBusinessCard(Update update) {
-        SendMessage message = createMessage(localizationService.getDictionaryForUser(getChatId(update)).businessCard,
-                getChatId(update));
+    public SendMessage getBusinessCardMessage(Update update) {
+        SendMessage message = createMessage(localizationService.getDictionaryForUser(userService.getChatId(update)).businessCard,
+                userService.getChatId(update));
 
         buttonService.attachButtons(message);
         return message;
     }
 
-    public SendMessage giveCurrencyRates(Update update) {
+    public SendMessage getCurrencyRatesMassage(Update update) {
         String formattedCurrencyRates = null;
         try {
-            formattedCurrencyRates = currencyRatesService.getFormattedCurrencyRates(getChatId(update));
+            formattedCurrencyRates = currencyRatesService.getFormattedCurrencyRates(userService.getChatId(update));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        SendMessage message = createMessage(formattedCurrencyRates, getChatId(update));
+        SendMessage message = createMessage(formattedCurrencyRates, userService.getChatId(update));
         buttonService.attachButtons(message);
         return message;
     }
 
-    public SendPhoto sendImage(String name, Long chatId) {
+    public SendPhoto getPhotoMessage(String name, Long chatId) {
         SendPhoto photo = new SendPhoto();
         InputFile inputFile = new InputFile();
 
@@ -108,46 +116,6 @@ public class MessageService {
         photo.setPhoto(inputFile);
         photo.setChatId(chatId);
         return photo;
-    }
-
-
-
-    private Long getChatId(Update update) {
-        if (update.hasMessage()) {
-            return update.getMessage().getFrom().getId();
-        }
-
-        if (update.hasCallbackQuery()) {
-            return update.getCallbackQuery().getFrom().getId();
-        }
-
-        return null;
-    }
-
-    private String getGreetingMessage(Update update) {
-        Localization userDictionary = localizationService.getDictionaryForUser(getChatId(update));
-        return String.format(userDictionary.greetingUser, getUserName(update));
-    }
-
-    private String getUserName(Update update) {
-        String userFirstName = "";
-        String userLastName = "";
-        String resultFirstName = "";
-        String resultLastName = "";
-
-        if (update.hasMessage()) {
-            userFirstName = update.getMessage().getFrom().getFirstName();
-            userLastName = update.getMessage().getFrom().getLastName();
-        }
-
-        if (update.hasCallbackQuery()) {
-            userFirstName = update.getCallbackQuery().getFrom().getFirstName();
-            userLastName = update.getCallbackQuery().getFrom().getLastName();
-        }
-        resultFirstName = (userFirstName != null && userFirstName != "") ? userFirstName : "";
-        resultLastName = (userLastName != null && userLastName != "") ? userLastName : "";
-
-        return resultFirstName + " " + resultLastName;
     }
 
     private SendMessage createMessage(String text, Long chatId) {
