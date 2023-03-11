@@ -9,4 +9,5 @@ public class Localization {
     public String currencyRateBtn;
     public String generalInfo;
     public String technologyStack;
+    public String businessCard;
 }

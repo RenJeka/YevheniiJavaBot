@@ -132,20 +132,24 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     }
 
     private String getUserName(Update update) {
-        String firstName = "";
-        String lastName = "";
+        String userFirstName = "";
+        String userLastName = "";
+        String resultFirstName = "";
+        String resultLastName = "";
 
         if (update.hasMessage()) {
-            firstName = !(update.getMessage().getFrom().getFirstName()).isEmpty() ? update.getMessage().getFrom().getFirstName() : "";
-            lastName = !(update.getMessage().getFrom().getLastName()).isEmpty() ? update.getMessage().getFrom().getLastName() : "";
+            userFirstName = update.getMessage().getFrom().getFirstName();
+            userLastName = update.getMessage().getFrom().getLastName();
         }
 
         if (update.hasCallbackQuery()) {
-            firstName = !(update.getCallbackQuery().getFrom().getFirstName()).isEmpty() ? update.getCallbackQuery().getFrom().getFirstName() : "";
-            lastName = !(update.getCallbackQuery().getFrom().getLastName()).isEmpty() ? update.getCallbackQuery().getFrom().getLastName() : "";
+            userFirstName = update.getCallbackQuery().getFrom().getFirstName();
+            userLastName = update.getCallbackQuery().getFrom().getLastName();
         }
+        resultFirstName = (userFirstName != null && userFirstName != "") ? userFirstName : "";
+        resultLastName = (userLastName != null && userLastName != "") ? userLastName : "";
 
-        return firstName + " " + lastName;
+        return resultFirstName + " " + resultLastName;
     }
 
 
@@ -217,22 +221,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
     private void giveBusinessCard(Update update, Logger logger) {
         sendImage("photo", getChatId(update), logger);
-        SendMessage message = createMessage(
-                "My name is Yevhenii Petrushenko.\n" +
-                        "\n" +
-                        "I am 29 y.o. Front-end developer who specializes in websites and single-page application (SPA) development.\n" +
-                        "\n" +
-                        "My expertise is Angular 2+, JavaScript, TypeScript, HTML / CSS (+ any preprocessors), RxJS, Unit and e2e Tests, GIT, Jira etc...\n" +
-                        "\n" +
-                        "I have 3+ years commercial experience and work with various technologies in different commands.\n" +
-                        "\n" +
-                        "I am friendly, sociable, fond of sports, psychology, technology, business and much more \uD83D\uDE0A\n" +
-                        "\n" +
-                        "You can visit my portfolio by clicking on [this portfolio link](http://yevhenii.website/).\n" +
-                        "\n" +
-                        "You can also visit my github by clicking on [this github link](https://github.com/RenJeka).\n" +
-                        "\n" +
-                        "Of course, you can contact me by clicking on [this telegram link](https://t.me/RenJeka).\n",
+        SendMessage message = createMessage(localizationService.getDictionaryForUser(getChatId(update)).businessCard,
                 getChatId(update));
 
         buttonService.attachButtons(message);
