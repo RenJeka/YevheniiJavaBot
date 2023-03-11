@@ -1,6 +1,7 @@
 package website.yevhenii.yevheniiJavaBot;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +33,9 @@ public class AWSLambdaHandler implements Function<String, APIGatewayProxyRespons
 
     @Override
     public APIGatewayProxyResponseEvent apply(String input) {
-
-        logger.info(input);
-
         try {
             Update update = objectMapper.readValue(input, Update.class);
-//            logger.info(update.getMessage().getText());
+            logger.info(getUpdateMessage(update));
             TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
             api.registerBot(yevheniiSpringAWSBot, setWebhook());
             yevheniiSpringAWSBot.onWebhookUpdateReceived(update, logger);
@@ -54,6 +52,15 @@ public class AWSLambdaHandler implements Function<String, APIGatewayProxyRespons
         return SetWebhook.builder()
                 .url(telegrambotWebhookURI)
                 .build();
+    }
+
+    private String getUpdateMessage(Update update) throws JsonProcessingException {
+        if (update.hasMessage()) {
+            return "message: " + update.getMessage().getText();
+        } else if (update.hasCallbackQuery()) {
+            return "callbackQuery: " + update.getCallbackQuery().getData();
+        }
+        return objectMapper.writeValueAsString(update);
     }
 
 }

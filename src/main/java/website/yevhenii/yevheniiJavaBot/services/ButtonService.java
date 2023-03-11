@@ -19,10 +19,7 @@ import java.util.List;
 @Service
 public class ButtonService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ButtonService.class);
-    public ButtonService() {
-        logger.info("button service works !!!!");
-    }
+//    private static final Logger logger = LoggerFactory.getLogger(ButtonService.class);
 
     private LocalizationService localizationService;
 
@@ -38,8 +35,8 @@ public class ButtonService {
 
         LinkedHashMap row1 = new LinkedHashMap<>();
 
-        row1.put("en", "en");
-        row1.put("ua", "ua");
+        row1.put("English", "en");
+        row1.put("Українська", "ua");
 
         keyboard.add(row1);
 
