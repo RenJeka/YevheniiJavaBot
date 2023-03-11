@@ -122,8 +122,8 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         return sendMessage;
     }
 
-    private String getChooseLocalizationMessage(Update update) {
-        return String.format("Please Choose language: ");
+    private String getChooseLocalizationMessage() {
+        return localizationService.getMessagesForAllLanguages();
     }
 
     private String getGreetingMessage(Update update) {
@@ -166,7 +166,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
     }
 
     private void letUserChooseLocalization(Update update, Logger logger) {
-        SendMessage message = createMessage(getChooseLocalizationMessage(update), getChatId(update));
+        SendMessage message = createMessage(getChooseLocalizationMessage(), getChatId(update));
 
         buttonService.attachButtons(message, ButtonsSet.LOCALIZATION);
         try {
@@ -179,8 +179,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
 
     private void giveCommonAnswer(Update update, Logger logger) {
         String updateText = update.getMessage().getText();
-        SendMessage message = createMessage(
-                "You said: '" + updateText + "', but this bot very simple and do only actions below",
+        SendMessage message = createMessage(String.format(localizationService.getDictionaryForUser(getChatId(update)).commonAnswerForUsersMessage, updateText),
                 getChatId(update));
         buttonService.attachButtons(message);
         try {
@@ -238,7 +237,7 @@ public class YevheniiSpringAWSBot extends TelegramWebhookBot {
         sendImage("exchange_rate", getChatId(update), logger);
 
         try {
-            String formattedCurrencyRates = currencyRatesService.getFormattedCurrencyRates();
+            String formattedCurrencyRates = currencyRatesService.getFormattedCurrencyRates(getChatId(update));
             SendMessage message = createMessage(formattedCurrencyRates, getChatId(update));
             buttonService.attachButtons(message);
             execute(message);

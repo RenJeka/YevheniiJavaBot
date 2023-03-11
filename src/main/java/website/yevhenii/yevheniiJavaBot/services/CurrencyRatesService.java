@@ -1,5 +1,6 @@
 package website.yevhenii.yevheniiJavaBot.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import website.yevhenii.yevheniiJavaBot.entities.CurrencyRate;
 
@@ -9,13 +10,24 @@ import java.math.RoundingMode;
 @Service
 public class CurrencyRatesService {
 
-    public String getFormattedCurrencyRates() throws IOException {
+    private LocalizationService localizationService;
+
+    @Autowired
+    public void setLocalizationService(LocalizationService localizationService) {
+        this.localizationService = localizationService;
+    }
+
+    public String getFormattedCurrencyRates(Long chatId) throws IOException {
+        return getFormattedCurrencyRates(chatId.toString());
+    }
+    public String getFormattedCurrencyRates(String chatId) throws IOException {
         CurrencyRate[] currencyRates = getCurrencyRates();
-        String formattedCurrencyRates = "Due to National Bank of Ukraine: \n\n";
+
+        String formattedCurrencyRates = localizationService.getDictionaryForUser(chatId).dueToNBU;
 
         for (CurrencyRate currencyRate : currencyRates) {
             formattedCurrencyRates = formattedCurrencyRates.concat(String.format(
-                    "You can *buy* 1 _%s_ for *%s %s* and *sale* 1 _%s_ for *%s %s*;\n",
+                    localizationService.getDictionaryForUser(chatId).currencyRateTemplate,
                     currencyRate.getFrom(),
                     currencyRate.getSale().setScale(2, RoundingMode.HALF_EVEN),
                     currencyRate.getTo(),

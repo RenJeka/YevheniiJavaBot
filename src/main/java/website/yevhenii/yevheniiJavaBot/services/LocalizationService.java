@@ -6,6 +6,8 @@ import website.yevhenii.yevheniiJavaBot.entities.Localization;
 import website.yevhenii.yevheniiJavaBot.enums.Localizations;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -30,6 +32,22 @@ public class LocalizationService {
             Localizations.EN, "en.json",
             Localizations.UA, "ua.json"
     );
+
+    // TODO: make method to work with different propertyName.
+    public String getMessagesForAllLanguages() {
+        return getMessagesForAllLanguages("pleaseChooseLanguage");
+    }
+    public String getMessagesForAllLanguages(String propertyName) {
+        return getMessagesForAllLanguages(propertyName, "\n");
+    }
+    public String getMessagesForAllLanguages(String propertyName, String separator) {
+        List<String> resultStrings = new LinkedList<>();
+        for (Localizations locale : Localizations.values()) {
+            Localization localeDictionary = getLocalDictionary(locale);
+            resultStrings.add(localeDictionary.pleaseChooseLanguage);
+        }
+        return String.join(separator, resultStrings);
+    }
 
     public Localization getDefaultDictionary() {
         String fileName = localDictionaryFileNames.get(defaultLocalizations);
@@ -79,6 +97,13 @@ public class LocalizationService {
         }
     }
 
+    private Localization getLocalDictionary(Localizations locale) {
+        String fileName = localDictionaryFileNames.get(defaultLocalizations);
+        if (localDictionaryFileNames.containsKey(locale)) {
+            fileName = localDictionaryFileNames.get(locale);
+        }
+        return getLocalDictionary(fileName);
+    }
     private Localization getLocalDictionary(String fileName) {
         return Parser.parseJSON(localizationFolderPath.concat(fileName), Localization.class);
     }
