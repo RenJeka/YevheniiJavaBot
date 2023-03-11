@@ -35,8 +35,8 @@ public class ButtonService {
 
         LinkedHashMap row1 = new LinkedHashMap<>();
 
-        row1.put("English", "en");
-        row1.put("Українська", "ua");
+        row1.put("English", "locale_en");
+        row1.put("Українська", "locale_ua");
 
         keyboard.add(row1);
 

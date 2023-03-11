@@ -38,7 +38,7 @@ public class AWSLambdaHandler implements Function<String, APIGatewayProxyRespons
             logger.info(getUpdateMessage(update));
             TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
             api.registerBot(yevheniiSpringAWSBot, setWebhook());
-            yevheniiSpringAWSBot.onWebhookUpdateReceived(update, logger);
+            yevheniiSpringAWSBot.onWebhookUpdateReceived(update);
             APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
             response.setStatusCode(200);
             response.setBody("OK");
